@@ -1,88 +1,133 @@
-state("ASSAULT_SPY-Win64-Shipping")
+// Amok Runner Load Remover & Autosplitter Version 1.0 30/12/2022
+// Supports Load Remover IGT
+// Splits for campaigns can be obtained from 
+// Script by TheDementedSalad
+// Levels found by by yobson
+
+
+state("Amok-Win64-Shipping", "SteamRelease")
 {
-    string1111 MapID : 0x02A7DD20, 0x7C8, 0x12;
-    byte Loader : 0x27EACF8; //0, 255 load, not
+	byte Loading 		:	0x46A6B10, 0x168, 0x8, 0x2218, 0x8;
+	byte Level 			:	0x4BAC550, 0x8, 0x8, 0x990, 0x250, 0x30;
+	byte Final			:	0x498A010, 0x118, 0x280, 0x480, 0x78, 0x0, 0x0, 0x88, 0x8;
+	byte Blackscreen	:	0x4989A18, 0xD2;
+	float X				:   0x4989A18, 0x98, 0x8C8, 0x3E8, 0x130, 0x10;
+	float Y				:	0x4989A18, 0x98, 0x8C8, 0x3E8, 0x130, 0x18;
+	float Z				:	0x4989A18, 0x98, 0x8C8, 0x3E8, 0x130, 0x14;
+	string128 Map 		:	0x4BAC598, 0xD28, 0x30, 0xF8, 0x20;
+
 }
 
 init
 {
-    vars.doneMaps = new List<string>();
+	switch (modules.First().ModuleMemorySize)
+	{
+		case (84217856):
+			version = "SteamRelease";
+			break;
+	}
 }
 
 startup
 {
-    settings.Add("AS", true, "All Chapters");
-
-    vars.Chapters = new Dictionary<string,string> 
+	vars.ASLVersion = "ASL Version 1.0.6 - 31/12/22";
+	
+	if (timer.CurrentTimingMethod == TimingMethod.RealTime){ // stolen from dude simulator 3, basically asks the runner to set their livesplit to game time
+		var timingMessage = MessageBox.Show (
+			"This game uses Time without Loads (Game Time) as the main timing method.\n"+
+			"LiveSplit is currently set to show Real Time (RTA).\n"+
+			"Would you like to set the timing method to Game Time? This will make verification easier",
+			"LiveSplit | Amok Runner",
+		MessageBoxButtons.YesNo,MessageBoxIcon.Question);
+		
+		if (timingMessage == DialogResult.Yes){
+			timer.CurrentTimingMethod = TimingMethod.GameTime;
+		}
+	}
+	
+	vars.completedSplits = new List<byte>();
+	
+	settings.Add(vars.ASLVersion, false);
+	
+	settings.Add("Auto", false, "Enable Autosplitter");
+	vars.Levels = new Dictionary<string,string>
 	{
-        {"/ステージ/00_アサルプロローグ/マップ/アサルプロローグP","Prologue"},
-        {"/ステージ/01_エントランス/エントランスステージ/エントランスステージ_P","Entrance"},
-        {"/ステージ/01_エントランス/エントランスホール/エントランスホールP","Entrance Hall"},
-        {"/ステージ/02_オフィスエリア/オフィスステージ/オフィス_パーシスタント","Office"},
-        {"/ステージ/03_地下エリア/地下ステージ/地下_P","Underground Stage"},
-        {"/ステージ/03_地下エリア/地下ステージ/地下_後半P","Underground Late"},
-        {"/ステージ/04_中庭エリア/中庭ステージ/中庭_P","Courtyard Stage"},
-        {"/ステージ/04_中庭エリア/中庭ステージ/中庭_後半P","Courtyard Late"},
-        {"/ステージ/05_屋上エリア/屋上ステージ/屋上_P","Rooftop"},
-        {"/ステージ/05_屋上エリア/屋上ステージ/屋上_後半P","Rooftop Late"},
-        {"/ステージ/06_バックヤード/マップ/バックヤード前半P","Backyard First Half"},
-        {"/ステージ/06_バックヤード/マップ/バックヤード_後半P","Backyard Late"},
-        {"/ステージ/07_エグゼクティブエリア/マップ/エグゼクティブ_P","Executive Stage"},
-        {"/ステージ/07_エグゼクティブエリア/マップ/エグゼクティブ_後半P","Executive Late"},
-        {"/ステージ/08_ラボエリア/マップ/ラボ_P","Lab"},
-        {"/ステージ/08_ラボエリア/マップ/ラボ_後半P","Lab Late"},
-        {"/ステージ/09_エピローグ/エピローグ_P","Epilogue"},
-        {"/ステージ/10_デスマーチ/デスマーチベース1","Desmarch Base 1"},
-    };
-    foreach (var Tag in vars.Chapters)
+		{"1","Begin Clinic"},
+		{"2","Finish Clinic"},
+		{"3","Reach Train Station"},
+		{"5","Reach House"},
+		{"6","Reach Abandoned House Grounds"},
+		{"7","Start Lowering Ladder"},
+		{"8","Enter Abandoned House"},
+		{"9","Leave Abandoned House"},
+		{"10","Finish Encounter"},
+		{"11","Reach Mansions Grounds"},
+		{"12","Enter Planet Building"},
+		{"13","Enter Mansion"},
+		{"14","Exit Mansion"},
+		{"15","Reach Town"},
+		{"16","Reach Clinic"},
+		{"17","Help Lady"},
+		{"18","RIP Lady"},
+		{"19","Begin Car Escape"},
+		{"20","Begin Cemetery"},
+		{"21","Begin Final Boss"},
+		{"22","Killed Final Boss"},
+		{"23","Reached Ship"},
+	};
+	
+	 foreach (var Tag in vars.Levels)
 		{
-			settings.Add(Tag.Key, true, Tag.Value, "AS");
+			settings.Add(Tag.Key, false, Tag.Value, "Auto");
     	};
 
+		settings.CurrentDefaultParent = null;
 
-	if (timer.CurrentTimingMethod == TimingMethod.RealTime)
-        // Asks user to change to game time if LiveSplit is currently set to Real Time.
-        {        
-            var timingMessage = MessageBox.Show (
-                "This game uses Time without Loads (Game Time) as the main timing method.\n"+
-                "LiveSplit is currently set to show Real Time (RTA).\n"+
-                "Would you like to set the timing method to Game Time?",
-                "LiveSplit | A Plague Tale Innocence",
-                MessageBoxButtons.YesNo,MessageBoxIcon.Question
-            );
-        
-        if (timingMessage == DialogResult.Yes)
-        {
-            timer.CurrentTimingMethod = TimingMethod.GameTime;
-        }
-    }
+	
+	settings.Add("End", true, "End Split - Always Active");
+}
+
+update
+{
+	// Uncomment debug information in the event of an update.
+	//print(modules.First().ModuleMemorySize.ToString());
+	
+	if(timer.CurrentPhase == TimerPhase.NotRunning)
+	{
+		vars.completedSplits.Clear();
+	}
 }
 
 start
 {
-    return ((current.Loader == 0) && (settings[current.MapID]));
-}
-
-onStart
-{
-    vars.doneMaps.Add(current.MapID);
+	return current.Loading == 2 && old.Loading == 3 && current.Level == 0;
 }
 
 split
 {
-    if((settings[current.MapID]) && (!vars.doneMaps.Contains(current.MapID) && current.Loader == 0))
-    {
-        vars.doneMaps.Add(current.MapID);
-        return true;
-    }
-}
+	vars.LevelStr = current.Level.ToString();
+	
+		if(settings["Auto"]){
+		if((settings[vars.LevelStr]) && (!vars.completedSplits.Contains(current.Level))){
+			vars.completedSplits.Add(current.Level);
+			return true;
+		}
+	}
 
-onReset
-{
-    vars.doneMaps.Clear();
+	
+	if(current.Level == 23 && current.X > -57145f && current.X < -57140f && current.Final == 1 && old.Final == 6){
+			return true;
+		}
+	
+	else return false;
 }
 
 isLoading
 {
-    return (current.Loader == 0);
+	return current.Loading == 3 || current.Map == "AmokEntry" || current.Blackscreen == 23;
+}
+
+reset
+{
+	return current.Map == "Amoktown" && old.Map == "AmokEntry" && current.Level == 0;
 }
